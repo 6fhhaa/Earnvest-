@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- IMPORTANT:
+Add these URLs in Supabase Authentication > URL Configuration
+
+Site URL:
+https://YOURDOMAIN.netlify.app
+
+Redirect URLs:
+https://YOURDOMAIN.netlify.app/admin.html
+https://YOURDOMAIN.netlify.app/
+-->
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>EarnVest — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Base ─────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;font-size:16px}
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:#080b12;color:#e2e8f8;
+  min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%}
+button,select,input,textarea{font-family:inherit;outline:none;-webkit-appearance:none}
+
+/* ── CSS Variables ────────────────────────────────── */
+:root{
+  --bg:#080b12;--surface:#0e1420;--card:#111827;
+  --border:#1f2d45;--border2:#2a3d5c;
+  --gold:#d4a843;--gold2:#f0c060;
+  --teal:#22d3c8;--green:#22c97e;
+  --red:#f05060;--blue:#60a0f0;--purple:#a070f0;
+  --muted:#4a5a7a;--text:#e2e8f8;--text2:#8899bb;
+  --r:14px;--r2:20px;
+  /* Mobile spacing */
+  --px:16px;--py:20px;
+  --topbar:56px;--navbar:64px;
+}
+
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── Animations ───────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.fade-up{animation:fadeUp .4s ease both}
+.tab.active{animation:fadeUp .3s ease both}
+
+/* ── Toast ────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:calc(var(--navbar) + 12px);left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:12px;padding:11px 20px;
+  font-size:13px;font-weight:500;color:var(--teal);
+  z-index:9998;transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;max-width:90vw;text-align:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.error{color:var(--red);border-color:rgba(240,80,96,.4)}
+#toast.success{color:var(--green);border-color:rgba(34,201,126,.4)}
+
+/* ── LOGIN GATE ───────────────────────────────────── */
+#gate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px 20px;overflow-y:auto;
+  background:#080b12;
+}
+.gate-bg{
+  position:absolute;inset:0;z-index:0;
+  background-image:url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=75');
+  background-size:cover;background-position:center;
+}
+.gate-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(8,11,18,.92) 0%,rgba(8,11,18,.85) 100%);
+}
+.gate-card{
+  position:relative;z-index:1;
+  width:100%;max-width:400px;
+  background:rgba(17,24,39,.9);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  padding:32px 24px 28px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 24px 64px rgba(0,0,0,.6);
+}
+.gate-card::before{
+  content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--teal),transparent);
+}
+.gate-logo{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,6vw,28px);
+  font-weight:800;color:#fff;
+  line-height:1.1;
+}
+.gate-logo span{color:var(--gold)}
+.gate-sub{font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:28px}
+.btn-google{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:14px 16px;
+  background:#fff;color:#111;border:none;border-radius:12px;
+  font-size:15px;font-weight:600;cursor:pointer;
+  transition:transform .15s,opacity .15s;
+  margin-bottom:16px;
+}
+.btn-google:active{transform:scale(.98);opacity:.9}
+.btn-gold{
+  display:block;width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--gold),#b8882a);
+  color:#0a0600;border:none;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;letter-spacing:.02em;
+  transition:transform .15s,opacity .15s;
+}
+.btn-gold:active{transform:scale(.98);opacity:.9}
+.divider{
+  display:flex;align-items:center;gap:10px;
+  margin:16px 0;font-size:12px;color:var(--muted);
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.input{
+  width:100%;padding:13px 14px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:15px;
+  transition:border-color .2s;
+  /* Prevent iOS zoom on focus */
+  font-size:16px !important;
+}
+.input:focus{border-color:var(--teal)}
+select.input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a5a7a' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+#magic-sent{
+  display:none;background:rgba(34,201,126,.08);
+  border:1px solid rgba(34,201,126,.25);border-radius:10px;
+  padding:14px;font-size:13px;color:var(--green);
+  text-align:center;margin-top:12px;
+}
+#gate-status{
+  font-size:13px;min-height:18px;margin-top:10px;
+  text-align:center;color:var(--muted);
+}
+.gate-footer{font-size:11px;color:var(--muted);text-align:center;margin-top:14px}
+.gate-footer span{color:var(--gold)}
+
+/* ── PORTAL WRAPPER ───────────────────────────────── */
+#portal{
+  display:none;
+  padding-top:var(--topbar);
+  padding-bottom:var(--navbar);
+  min-height:100vh;
+}
+
+/* ── TOP BAR ──────────────────────────────────────── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--topbar);z-index:200;
+  background:rgba(8,11,18,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 var(--px);
+}
+.topbar-brand{
+  font-family:'Syne',sans-serif;
+  font-size:18px;font-weight:800;color:#fff;
+  display:flex;align-items:center;gap:8px;
+}
+.topbar-brand span{color:var(--gold)}
+.topbar-badge{
+  font-family:'DM Sans',sans-serif;
+  font-size:9px;font-weight:600;
+  color:var(--teal);letter-spacing:.08em;
+  text-transform:uppercase;
+  background:rgba(34,211,200,.1);
+  border:1px solid rgba(34,211,200,.2);
+  padding:3px 8px;border-radius:6px;
+}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.notif-btn{
+  position:relative;background:none;border:none;
+  cursor:pointer;padding:8px;color:var(--text2);
+  font-size:18px;line-height:1;border-radius:8px;
+}
+.notif-dot{
+  position:absolute;top:6px;right:6px;
+  width:7px;height:7px;
+  background:var(--red);border-radius:50%;
+  border:1.5px solid var(--bg);display:none;
+}
+.btn-signout{
+  padding:7px 13px;
+  background:rgba(240,80,96,.08);
+  border:1px solid rgba(240,80,96,.2);
+  color:var(--red);border-radius:8px;
+  font-size:12px;font-weight:600;cursor:pointer;
+}
+
+/* ── BOTTOM NAV ───────────────────────────────────── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--navbar);z-index:200;
+  background:rgba(8,11,18,.96);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:stretch;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;
+  color:var(--muted);font-size:9px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em;
+  transition:color .2s;padding:8px 4px;
+  border:none;background:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.bnav-item .icon{font-size:19px;line-height:1;transition:transform .2s}
+.bnav-item.active{color:var(--teal)}
+.bnav-item.active .icon{transform:translateY(-2px)}
+.bnav-more{position:relative}
+
+/* More drawer */
+.more-drawer{
+  position:fixed;bottom:var(--navbar);left:0;right:0;
+  background:var(--card);border-top:1px solid var(--border2);
+  border-radius:var(--r2) var(--r2) 0 0;
+  z-index:300;transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  padding:12px var(--px) 8px;
+}
+.more-drawer.open{transform:translateY(0)}
+.more-drawer-handle{
+  width:40px;height:4px;background:var(--border2);
+  border-radius:2px;margin:0 auto 16px;
+}
+.more-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.more-item{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:14px 8px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  cursor:pointer;color:var(--text2);font-size:11px;font-weight:500;
+  text-align:center;transition:all .15s;
+}
+.more-item .icon{font-size:22px}
+.more-item:active{background:var(--border);transform:scale(.96)}
+.more-item.active{color:var(--teal);border-color:rgba(34,211,200,.3);background:rgba(34,211,200,.06)}
+.drawer-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:299;display:none;
+}
+.drawer-overlay.open{display:block}
+
+/* ── CONTENT ──────────────────────────────────────── */
+.content{padding:var(--py) var(--px);max-width:680px;margin:0 auto}
+.tab{display:none}
+.tab.active{display:block}
+
+/* ── HERO BANNER ──────────────────────────────────── */
+.hero-banner{
+  border-radius:var(--r2);overflow:hidden;
+  position:relative;margin-bottom:20px;
+  height:130px;
+}
+.hero-banner img{
+  width:100%;height:100%;object-fit:cover;
+  display:block;
+}
+.hero-banner-overlay{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:16px;
+}
+.hero-banner-title{
+  font-family:'Syne',sans-serif;
+  font-size:19px;font-weight:800;color:#fff;line-height:1.2;
+}
+.hero-banner-sub{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+.hero-live{
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+}
+.hero-live-dot{
+  width:7px;height:7px;background:var(--green);
+  border-radius:50%;animation:pulse 2s infinite;
+}
+.hero-live-text{font-size:11px;color:var(--green);font-weight:600}
+
+/* ── STATS GRID ───────────────────────────────────── */
+.stats-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:20px;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;
+  cursor:pointer;transition:transform .15s,border-color .2s;
+  position:relative;overflow:hidden;
+}
+.stat-card:active{transform:scale(.97)}
+.stat-card::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:2px;
+  opacity:.6;
+}
+.stat-card.gold::after{background:var(--gold)}
+.stat-card.teal::after{background:var(--teal)}
+.stat-card.green::after{background:var(--green)}
+.stat-card.blue::after{background:var(--blue)}
+.stat-card.red::after{background:var(--red)}
+.stat-card.purple::after{background:var(--purple)}
+.stat-label{
+  font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);margin-bottom:8px;
+}
+.stat-value{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,6vw,30px);
+  font-weight:800;line-height:1;
+}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:5px}
+
+/* ── QUICK ACTIONS ────────────────────────────────── */
+.qa-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:20px;
+}
+.qa-btn{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;
+  cursor:pointer;text-align:left;
+  transition:transform .15s,border-color .2s;
+  display:flex;flex-direction:column;gap:5px;
+}
+.qa-btn:active{transform:scale(.97)}
+.qa-icon{font-size:24px;line-height:1}
+.qa-label{font-size:13px;font-weight:700;color:var(--text)}
+.qa-desc{font-size:11px;color:var(--muted)}
+
+/* ── SECTION HEADER ───────────────────────────────── */
+.sec-head{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+.sec-title{
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:800;color:#fff;
+}
+.sec-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.sec-link{font-size:12px;color:var(--teal);background:none;border:none;cursor:pointer}
+
+/* ── CARD ─────────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r)}
+.card-p{padding:16px}
+
+/* ── USER CARD ────────────────────────────────────── */
+.user-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;margin-bottom:14px;
+}
+.user-header{
+  padding:14px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,#0d1b2e,#0e1420);
+}
+.avatar{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,var(--teal),#0a9990);
+}
+.user-name{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.user-email{font-size:11px;color:var(--muted);margin-top:1px}
+.user-meta{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ── BADGES ───────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:3px 9px;border-radius:20px;
+  font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.badge-active{background:rgba(34,201,126,.1);color:var(--green);border:1px solid rgba(34,201,126,.25)}
+.badge-suspended{background:rgba(240,80,96,.1);color:var(--red);border:1px solid rgba(240,80,96,.25)}
+.badge-pending{background:rgba(212,168,67,.1);color:var(--gold);border:1px solid rgba(212,168,67,.25)}
+.badge-verified{background:rgba(34,211,200,.1);color:var(--teal);border:1px solid rgba(34,211,200,.25)}
+.badge-rejected{background:rgba(240,80,96,.1);color:var(--red);border:1px solid rgba(240,80,96,.25)}
+.badge-submitted{background:rgba(96,160,240,.1);color:var(--blue);border:1px solid rgba(96,160,240,.25)}
+
+/* ── USER STATS ROW ───────────────────────────────── */
+.user-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.user-stat{padding:11px 8px;text-align:center}
+.user-stat:not(:last-child){border-right:1px solid var(--border)}
+.us-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.us-value{font-family:'Syne',sans-serif;font-size:16px;font-weight:800}
+
+/* ── COLLAPSIBLE ──────────────────────────────────── */
+.coll-btn{
+  width:100%;padding:10px 14px;background:rgba(0,0,0,.25);
+  border:none;border-bottom:1px solid var(--border);
+  color:var(--teal);font-size:11px;font-weight:700;
+  letter-spacing:.04em;cursor:pointer;
+  text-align:left;display:flex;
+  align-items:center;justify-content:space-between;
+}
+.coll-content{display:none;padding:12px 14px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--border)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 11px}
+.info-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+.info-value{font-size:12px;color:var(--text);word-break:break-all}
+
+/* ── WALLET EDITOR ────────────────────────────────── */
+.wallet-section{padding:12px 14px;border-bottom:1px solid var(--border);background:rgba(212,168,67,.03)}
+.wallet-section-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:10px}
+.wallet-row{display:flex;gap:8px;margin-bottom:8px}
+.wallet-input{
+  flex:1;padding:11px 12px;
+  background:var(--surface);
+  border:1px solid rgba(212,168,67,.35);
+  border-radius:10px;color:#fff;
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  outline:none;
+}
+.wallet-input:focus{border-color:var(--gold)}
+.fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── ACTION BUTTONS ───────────────────────────────── */
+.act-row{padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.act-btn{
+  padding:10px 4px;border-radius:9px;
+  font-size:10px;font-weight:700;
+  cursor:pointer;text-align:center;
+  border:1px solid;font-family:'DM Sans',sans-serif;
+  letter-spacing:.02em;
+  transition:transform .1s;
+}
+.act-btn:active{transform:scale(.95)}
+.a-teal{background:rgba(34,211,200,.08);border-color:rgba(34,211,200,.3);color:var(--teal)}
+.a-green{background:rgba(34,201,126,.08);border-color:rgba(34,201,126,.3);color:var(--green)}
+.a-red{background:rgba(240,80,96,.08);border-color:rgba(240,80,96,.3);color:var(--red)}
+.a-blue{background:rgba(96,160,240,.08);border-color:rgba(96,160,240,.3);color:var(--blue)}
+.a-purple{background:rgba(160,112,240,.08);border-color:rgba(160,112,240,.3);color:var(--purple)}
+.a-gold{background:rgba(212,168,67,.08);border-color:rgba(212,168,67,.3);color:var(--gold)}
+.a-ghost{background:rgba(255,255,255,.04);border-color:var(--border);color:var(--text2)}
+
+/* ── WALLET TAB ───────────────────────────────────── */
+.wcard{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;margin-bottom:10px;
+}
+.wcard-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.wcard-info{flex:1;min-width:0}
+.wcard-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wcard-email{font-size:11px;color:var(--muted)}
+.wcard-bal{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--gold);flex-shrink:0}
+.wcard-controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.w-input{width:100px;padding:9px 10px;background:var(--surface);border:1px solid rgba(212,168,67,.35);border-radius:8px;color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;outline:none}
+.w-set{padding:9px 14px;background:linear-gradient(135deg,var(--gold),#b8882a);color:#0a0600;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.w-add{padding:9px 12px;background:rgba(34,201,126,.08);border:1px solid rgba(34,201,126,.3);color:var(--green);border-radius:8px;font-size:12px;cursor:pointer}
+.w-ded{padding:9px 12px;background:rgba(240,80,96,.08);border:1px solid rgba(240,80,96,.3);color:var(--red);border-radius:8px;font-size:12px;cursor:pointer}
+
+/* ── TRANSACTIONS TABLE ───────────────────────────── */
+.tx-list .tx-row{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:13px 14px;margin-bottom:8px;
+}
+.tx-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.tx-user{font-size:14px;font-weight:600;color:var(--text)}
+.tx-amount{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--gold)}
+.tx-meta{font-size:11px;color:var(--muted);margin-bottom:8px}
+.tx-actions{display:flex;gap:8px}
+.tx-approve{padding:8px 14px;background:rgba(34,201,126,.1);border:1px solid rgba(34,201,126,.3);color:var(--green);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+.tx-reject{padding:8px 14px;background:rgba(240,80,96,.08);border:1px solid rgba(240,80,96,.3);color:var(--red);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+
+/* ── KYC CARDS ────────────────────────────────────── */
+.kyc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px}
+.kyc-header{padding:14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#0d1b2e,#0e1420)}
+.kyc-doc{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;border:1px solid var(--border);display:block;margin-bottom:12px;background:var(--surface)}
+.kyc-no-doc{width:100%;height:90px;border-radius:10px;border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;margin-bottom:12px}
+.kyc-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kyc-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.kyc-approve{padding:12px;background:rgba(34,201,126,.1);border:1px solid rgba(34,201,126,.3);color:var(--green);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+.kyc-reject{padding:12px;background:rgba(240,80,96,.08);border:1px solid rgba(240,80,96,.3);color:var(--red);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+
+/* ── AFFILIATE ────────────────────────────────────── */
+.rank-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:13px 14px;
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:8px;
+}
+.rank-num{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold);width:28px;text-align:center;flex-shrink:0}
+
+/* ── PLANS ────────────────────────────────────────── */
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.plan-head{padding:14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.plan-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff}
+.plan-price{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--gold)}
+.plan-body{padding:12px 14px;display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.plan-meta{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 11px}
+.plan-meta-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+.plan-meta-value{font-size:13px;font-weight:600}
+.plan-actions{padding:0 14px 12px;display:flex;gap:8px}
+
+/* ── FORMS ────────────────────────────────────────── */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.section-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.panel-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* ── MODALS ───────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:var(--r2) var(--r2) 0 0;
+  width:100%;max-width:560px;
+  max-height:90vh;overflow-y:auto;
+  position:relative;padding-bottom:env(safe-area-inset-bottom,0px);
+  animation:slideUp .35s cubic-bezier(.4,0,.2,1) both;
+}
+.modal::before{content:'';position:absolute;top:0;left:25%;right:25%;height:1px;background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.modal-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.modal-head{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:4px;line-height:1}
+.modal-body{padding:16px 20px 24px}
+
+/* ── NOTIF PANEL ──────────────────────────────────── */
+#notif-panel{
+  display:none;position:fixed;
+  top:var(--topbar);right:0;left:0;bottom:var(--navbar);
+  background:var(--bg);z-index:400;overflow-y:auto;
+  animation:fadeIn .2s ease;
+}
+@media(min-width:480px){
+  #notif-panel{left:auto;width:340px;top:calc(var(--topbar)+4px);bottom:auto;border-radius:var(--r2);border:1px solid var(--border2);box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:420px}
+}
+.notif-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card)}
+.notif-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border)}
+.notif-item.unread{background:rgba(34,211,200,.03)}
+.notif-msg{font-size:13px;color:var(--text);font-weight:500;margin-bottom:4px;line-height:1.4}
+.notif-msg.read{color:var(--muted);font-weight:400}
+.notif-time{font-size:10px;color:var(--muted)}
+
+/* ── RECENT SIGNUPS ───────────────────────────────── */
+.signup-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid var(--border)}
+.signup-row:last-child{border-bottom:none}
+.signup-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.signup-email{font-size:11px;color:var(--muted)}
+.signup-bal{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--gold);flex-shrink:0}
+
+/* ── KYC STATS ────────────────────────────────────── */
+.kyc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.kyc-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.kyc-stat-value{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.kyc-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+
+/* ── SEARCH & FILTER ──────────────────────────────── */
+.search-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+
+/* ── EMPTY STATE ──────────────────────────────────── */
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text2);margin-bottom:4px}
+.empty-sub{font-size:12px}
+
+/* ── DESKTOP ADJUSTMENTS ──────────────────────────── */
+@media(min-width:640px){
+  :root{--px:24px;--py:24px}
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .qa-grid{grid-template-columns:repeat(4,1fr)}
+  .act-row{grid-template-columns:repeat(6,1fr)}
+  .bottom-nav{display:none}
+  .topbar{padding:0 24px}
+  .desktop-tabs{display:flex}
+  #portal{padding-bottom:0}
+  #notif-panel{left:auto;width:340px}
+  .modal{border-radius:var(--r2);max-width:480px;margin:auto;animation:fadeIn .25s ease}
+  .modal-bg{align-items:center}
+}
+.desktop-tabs{display:none;border-bottom:1px solid var(--border);padding:0 var(--px);overflow-x:auto;white-space:nowrap;background:var(--bg)}
+.dtab{display:inline-flex;align-items:center;gap:6px;padding:13px 14px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.dtab:hover{color:var(--text)}
+.dtab.active{color:var(--teal);border-bottom-color:var(--teal)}
+
+/* PREMIUM ADMIN PORTAL UPGRADE */
+body{
+  background:
+    radial-gradient(circle at top right, rgba(0,212,184,.08), transparent 25%),
+    radial-gradient(circle at bottom left, rgba(201,149,34,.08), transparent 25%),
+    #050816 !important;
+}
+
+.premium-shell{
+  display:flex;
+  min-height:100vh;
+}
+
+.premium-sidebar{
+  width:280px;
+  background:rgba(7,10,20,.96);
+  border-right:1px solid rgba(255,255,255,.06);
+  position:sticky;
+  top:0;
+  height:100vh;
+  padding:24px 18px;
+  backdrop-filter:blur(20px);
+  overflow-y:auto;
+}
+
+.premium-logo{
+  padding:18px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#0f1729,#0b1220);
+  border:1px solid rgba(255,255,255,.08);
+  margin-bottom:24px;
+}
+
+.premium-logo h1{
+  font-size:22px;
+  font-weight:800;
+  color:#fff;
+}
+
+.premium-logo p{
+  color:#7f8db3;
+  font-size:12px;
+  margin-top:6px;
+}
+
+.sidebar-item{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.04);
+  margin-bottom:10px;
+  border-radius:14px !important;
+  padding:14px 16px !important;
+}
+
+.sidebar-item.active,
+.sidebar-item:hover{
+  background:linear-gradient(135deg,rgba(0,212,184,.15),rgba(201,149,34,.12));
+  transform:translateX(4px);
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+
+.main-premium-content{
+  flex:1;
+  padding:28px;
+}
+
+.card,.stat-card,.user-card{
+  background:rgba(13,17,23,.88)!important;
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.06)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+.topbar-premium{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:28px;
+  padding:18px 24px;
+  border-radius:20px;
+  background:rgba(13,17,23,.88);
+  border:1px solid rgba(255,255,255,.06);
+}
+
+.mobile-toggle{
+  display:none;
+}
+
+@media(max-width:980px){
+  .premium-sidebar{
+    position:fixed;
+    left:-300px;
+    z-index:999;
+    transition:.3s ease;
+  }
+
+  .premium-sidebar.open{
+    left:0;
+  }
+
+  .mobile-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.08);
+    background:#0d1117;
+    color:#fff;
+    cursor:pointer;
+  }
+
+  .main-premium-content{
+    width:100%;
+    padding:18px;
+  }
+}
+
+</style>
+
+
+
+
+<style id="safe-admin-sidebar">
+/* SAFE PREMIUM SIDEBAR */
+.premium-sidebar{
+position:fixed;
+left:0;
+top:0;
+bottom:0;
+width:260px;
+background:#0b1220;
+border-right:1px solid #1e2a45;
+padding:20px;
+overflow-y:auto;
+z-index:999;
+}
+
+.main-content-safe{
+margin-left:260px;
+padding:20px;
+}
+
+.top-nav,.top-menu,.admin-menu,.nav-links{
+display:none !important;
+}
+
+.sidebar-item{
+display:block;
+padding:14px;
+margin-bottom:10px;
+border-radius:12px;
+background:#111827;
+color:#cbd5e1;
+cursor:pointer;
+font-weight:600;
+text-decoration:none;
+}
+
+.sidebar-item:hover{
+background:#00d4b820;
+color:#00d4b8;
+}
+
+@media(max-width:768px){
+.premium-sidebar{
+transform:translateX(-100%);
+transition:.3s;
+}
+.premium-sidebar.open{
+transform:translateX(0);
+}
+.main-content-safe{
+margin-left:0;
+}
+}
+</style>
+
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ══════════ LOGIN GATE ══════════ -->
+<div id="gate">
+  <div class="gate-bg"></div>
+  <div class="gate-card">
+    <div class="gate-card" style="padding:0;background:none;border:none;box-shadow:none;margin-bottom:24px;text-align:center">
+      <div style="font-size:40px;margin-bottom:10px">🔐</div>
+      <div class="gate-logo">Earn<span>Vest</span> Global</div>
+      <div class="gate-sub">Admin Command Center</div>
+    </div>
+
+    <button id="btn-google" class="btn-google">
+      <svg viewBox="0 0 48 48" style="width:18px;height:18px;flex-shrink:0">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="divider">or magic link</div>
+
+    <div id="magic-section">
+      <select id="magic-email" class="input" style="margin-bottom:10px">
+        <option value="">— Select admin email —</option>
+        <option value="chrisbobb120@gmail.com">chrisbobb120@gmail.com</option>
+        <option value="sahmsupport@gmail.com">sahmsupport@gmail.com</option>
+        <option value="earnvestadminport@gmail.com">earnvestadminport@gmail.com</option>
+      </select>
+      <button id="btn-magic" class="btn-gold">Send Magic Link →</button>
+    </div>
+    <div id="magic-sent">✅ Check your email and click the link.</div>
+    <div id="gate-status"></div>
+    <div class="gate-footer">🛡️ Restricted to <span>authorized admin only</span></div>
+  </div>
+</div>
+
+<!-- ══════════ PORTAL ══════════ -->
+<div id="portal" style="display:none">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-brand">Earn<span>Vest</span> <span class="topbar-badge">Admin</span></div>
+    <div class="topbar-right">
+      <button class="notif-btn" onclick="toggleNotif()">🔔<div class="notif-dot" id="ndot"></div></button>
+      <button class="btn-signout" onclick="doLogout()">Out</button>
+    </div>
+  </div>
+
+  <!-- Desktop tab nav -->
+  <div class="desktop-tabs" id="desktop-tabs">
+    <span class="dtab active" onclick="showTab('overview',this)">📊 Overview</span>
+    <span class="dtab" onclick="showTab('users',this)">👥 Users</span>
+    <span class="dtab" onclick="showTab('kyc',this)">🪪 KYC</span>
+    <span class="dtab" onclick="showTab('wallet',this)">💳 Wallet</span>
+    <span class="dtab" onclick="showTab('transactions',this)">💸 Transactions</span>
+    <span class="dtab" onclick="showTab('affiliate',this)">🔗 Affiliate</span>
+    <span class="dtab" onclick="showTab('products',this)">📦 Plans</span>
+    <span class="dtab" onclick="showTab('mail',this)">📧 Messages</span>
+    <span class="dtab" onclick="showTab('settings',this)">⚙️ Settings</span>
+  </div>
+
+  <!-- Notif Panel -->
+  <div id="notif-panel">
+    <div class="notif-head">
+      <div class="notif-title">Notifications</div>
+      <div style="display:flex;gap:12px">
+        <span style="font-size:11px;color:var(--teal);cursor:pointer" onclick="markAllRead()">Read all</span>
+        <span style="font-size:11px;color:var(--red);cursor:pointer" onclick="clearNotifs()">Clear</span>
+      </div>
+    </div>
+    <div id="notif-list"><div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No notifications</div></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ▶ OVERVIEW -->
+    <div id="tab-overview" class="tab active">
+      <div class="hero-banner">
+        <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&q=75" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div class="hero-banner-overlay" style="background:linear-gradient(180deg,rgba(8,11,18,.3) 0%,rgba(8,11,18,.88) 100%)">
+          <div class="hero-live"><div class="hero-live-dot"></div><div class="hero-live-text">Platform Live</div></div>
+          <div class="hero-banner-title">EarnVest Global</div>
+          <div class="hero-banner-sub">Admin Command Center</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card teal" onclick="showTab('users',getDTab('users'))">
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value" id="s-users" style="color:var(--teal)">—</div>
+          <div class="stat-sub">Affiliates</div>
+        </div>
+        <div class="stat-card green" onclick="showTab('users',getDTab('users'))">
+          <div class="stat-label">Active</div>
+          <div class="stat-value" id="s-active" style="color:var(--green)">—</div>
+          <div class="stat-sub">Last 30 days</div>
+        </div>
+        <div class="stat-card gold" onclick="showTab('wallet',getDTab('wallet'))">
+          <div class="stat-label">Balance</div>
+          <div class="stat-value" id="s-balance" style="color:var(--gold)">—</div>
+          <div class="stat-sub">All wallets</div>
+        </div>
+        <div class="stat-card red" onclick="showTab('transactions',getDTab('transactions'))">
+          <div class="stat-label">Payouts</div>
+          <div class="stat-value" id="s-payouts" style="color:var(--red)">—</div>
+          <div class="stat-sub">Approved</div>
+        </div>
+        <div class="stat-card blue" onclick="showTab('kyc',getDTab('kyc'))">
+          <div class="stat-label">KYC Pending</div>
+          <div class="stat-value" id="s-kyc" style="color:var(--blue)">—</div>
+          <div class="stat-sub">Review needed</div>
+        </div>
+        <div class="stat-card purple" onclick="showTab('affiliate',getDTab('affiliate'))">
+          <div class="stat-label">Referrals</div>
+          <div class="stat-value" id="s-refs" style="color:var(--purple)">—</div>
+          <div class="stat-sub">Platform-wide</div>
+        </div>
+      </div>
+
+      <div class="qa-grid">
+        <button class="qa-btn" onclick="openAddUser()"><div class="qa-icon">➕</div><div class="qa-label">Add User</div><div class="qa-desc">New account</div></button>
+        <button class="qa-btn" onclick="showTab('kyc',getDTab('kyc'))"><div class="qa-icon">🪪</div><div class="qa-label">Review KYC</div><div class="qa-desc">Verify IDs</div></button>
+        <button class="qa-btn" onclick="showTab('wallet',getDTab('wallet'))"><div class="qa-icon">💳</div><div class="qa-label">Wallets</div><div class="qa-desc">Fund & deduct</div></button>
+        <button class="qa-btn" onclick="showTab('mail',getDTab('mail'))"><div class="qa-icon">📢</div><div class="qa-label">Broadcast</div><div class="qa-desc">Message all</div></button>
+      </div>
+
+      <div class="sec-head">
+        <div><div class="sec-title">Recent Signups</div></div>
+        <button class="sec-link" onclick="showTab('users',getDTab('users'))">View all →</button>
+      </div>
+      <div class="card"><div id="recent-list"><div class="empty"><div class="empty-icon">👥</div><div class="empty-sub">Loading...</div></div></div></div>
+    </div>
+
+    <!-- ▶ USERS -->
+    <div id="tab-users" class="tab">
+      <div class="hero-banner" style="height:110px">
+        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=75" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div class="hero-banner-overlay" style="background:linear-gradient(135deg,rgba(8,11,18,.88),rgba(0,50,40,.65))">
+          <div class="hero-banner-title" style="font-size:17px">👥 User Management</div>
+          <div class="hero-banner-sub">All registered affiliates</div>
+        </div>
+      </div>
+      <div class="sec-head">
+        <div class="sec-title" style="font-size:14px" id="user-count">Users</div>
+        <button onclick="openAddUser()" style="padding:9px 16px;background:linear-gradient(135deg,var(--gold),#b8882a);color:#0a0600;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">+ Add</button>
+      </div>
+      <div class="search-bar">
+        <input id="user-search" class="input" style="flex:1;min-width:0;font-size:14px" placeholder="🔍 Search..." oninput="renderUsers()"/>
+        <select id="user-filter" class="input" style="min-width:110px;font-size:14px" onchange="renderUsers()">
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div id="users-list"><div class="empty"><div class="empty-icon">👥</div><div class="empty-sub">Loading...</div></div></div>
+    </div>
+
+    <!-- ▶ KYC -->
+    <div id="tab-kyc" class="tab">
+      <div class="hero-banner" style="height:110px">
+        <img src="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?w=800&q=75" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div class="hero-banner-overlay" style="background:linear-gradient(135deg,rgba(8,11,18,.9),rgba(0,20,60,.7))">
+          <div class="hero-banner-title" style="font-size:17px">🪪 KYC Portal</div>
+          <div class="hero-banner-sub">Review & verify identity documents</div>
+        </div>
+      </div>
+      <div class="kyc-stats">
+        <div class="kyc-stat"><div class="kyc-stat-value" id="kyc-sub" style="color:var(--blue)">—</div><div class="kyc-stat-label">Submitted</div></div>
+        <div class="kyc-stat"><div class="kyc-stat-value" id="kyc-ver" style="color:var(--green)">—</div><div class="kyc-stat-label">Verified</div></div>
+        <div class="kyc-stat"><div class="kyc-stat-value" id="kyc-pen" style="color:var(--gold)">—</div><div class="kyc-stat-label">Pending</div></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+        <select id="kyc-filter" class="input" style="width:auto;min-width:130px;font-size:14px" onchange="renderKYC()">
+          <option value="all">All Users</option>
+          <option value="submitted">Submitted</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+          <option value="none">No KYC</option>
+        </select>
+      </div>
+      <div id="kyc-list"><div class="empty"><div class="empty-icon">🪪</div><div class="empty-sub">Loading...</div></div></div>
+    </div>
+
+    <!-- ▶ WALLET -->
+    <div id="tab-wallet" class="tab">
+      <div class="hero-banner" style="height:110px">
+        <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=75" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div class="hero-banner-overlay" style="background:linear-gradient(135deg,rgba(8,11,18,.9),rgba(40,30,0,.7))">
+          <div class="hero-banner-title" style="font-size:17px">💳 Wallet Management</div>
+          <div class="hero-banner-sub">Direct balance control · instant sync</div>
+        </div>
+      </div>
+      <div id="wallet-list"><div class="empty"><div class="empty-icon">💳</div><div class="empty-sub">Loading...</div></div></div>
+    </div>
+
+    <!-- ▶ TRANSACTIONS -->
+    <div id="tab-transactions" class="tab">
+      <div class="hero-banner" style="height:110px">
+        <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=75" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div class="hero-banner-overlay" style="background:linear-gradient(135deg,rgba(8,11,18,.9),rgba(40,0,0,.65))">
+          <div class="hero-banner-title" style="font-size:17px">💸 Transactions</div>
+          <div class="hero-banner-sub">Withdrawals & payment history</div>
+        </div>
+      </div>
+      <div id="tx-list" class="tx-list"><div class="empty"><div class="empty-icon">💸</div><div class="empty-sub">Loading...</div></div></div>
+    </div>
+
+    <!-- ▶ AFFILIATE -->
+    <div id="tab-affiliate" class="tab">
+      <div class="hero-banner" style="height:110px">
+        <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=75" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <div class="hero-banner-overlay" style="background:linear-gradient(135deg,rgba(8,11,18,.9),rgba(40,0,80,.6))">
+          <div class="hero-banner-title" style="font-size:17px">🔗 Affiliate Tracking</div>
+          <div class="hero-banner-sub">Commission leaderboard</div>
+        </div>
+      </div>
+      <div id="affiliate-list"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-sub">Loading...</div></div></div>
+    </div>
+
+    <!-- ▶ PLANS -->
+    <div id="tab-products" class="tab">
+      <div class="sec-head">
+        <div class="sec-title">📦 Plans & Products</div>
+        <button onclick="openAddProduct()" style="padding:9px 16px;background:linear-gradient(135deg,var(--gold),#b8882a);color:#0a0600;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">+ Add</button>
+      </div>
+      <div id="products-list"></div>
+    </div>
+
+    <!-- ▶ MESSAGES -->
+    <div id="tab-mail" class="tab">
+      <div class="sec-title" style="margin-bottom:16px">📧 Message Center</div>
+      <div class="section-panel">
+        <div class="panel-title" style="color:var(--blue)">📧 Compose</div>
+        <div class="field"><label>Recipient</label><select id="mail-to" class="input"><option value="all">📢 All Users (Broadcast)</option></select></div>
+        <div class="field"><label>Type</label>
+          <select id="mail-type" class="input">
+            <option value="info">ℹ️ Info</option>
+            <option value="payment">💰 Payment</option>
+            <option value="warning">⚠️ Warning</option>
+            <option value="success">✅ Success</option>
+            <option value="urgent">🚨 Urgent</option>
+          </select>
+        </div>
+        <div class="field"><label>Subject</label><input id="mail-subject" class="input" placeholder="e.g. Account Update"/></div>
+        <div class="field"><label>Message</label><textarea id="mail-body" class="input" rows="4" placeholder="Write your message..." style="resize:vertical"></textarea></div>
+        <button onclick="sendBroadcast()" class="btn-gold">📤 Send Message</button>
+      </div>
+    </div>
+
+    <!-- ▶ SETTINGS -->
+    <div id="tab-settings" class="tab">
+      <div class="sec-title" style="margin-bottom:16px">⚙️ Settings</div>
+      <div class="section-panel">
+        <div class="panel-title" style="color:var(--gold)">💰 Commission</div>
+        <div class="field"><label>Commission Rate (%)</label><input id="s-commission" class="input" type="number" value="10"/></div>
+        <div class="field"><label>Min Withdrawal ($)</label><input id="s-min-withdraw" class="input" type="number" value="50"/></div>
+        <button onclick="saveSettings()" class="btn-gold">Save Settings</button>
+      </div>
+      <div class="section-panel">
+        <div class="panel-title" style="color:var(--teal)">📢 Announcement</div>
+        <textarea id="s-announcement" class="input" rows="3" placeholder="Platform-wide message..." style="resize:vertical;margin-bottom:12px"></textarea>
+        <button onclick="saveAnnouncement()" style="width:100%;padding:12px;background:rgba(34,211,200,.1);border:1px solid rgba(34,211,200,.25);color:var(--teal);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Publish</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Bottom Nav (mobile) -->
+  <nav class="bottom-nav">
+    <button class="bnav-item active" id="bn-overview" onclick="showTab('overview',null);setBN('overview')"><div class="icon">📊</div>Overview</button>
+    <button class="bnav-item" id="bn-users" onclick="showTab('users',null);setBN('users')"><div class="icon">👥</div>Users</button>
+    <button class="bnav-item" id="bn-kyc" onclick="showTab('kyc',null);setBN('kyc')"><div class="icon">🪪</div>KYC</button>
+    <button class="bnav-item" id="bn-wallet" onclick="showTab('wallet',null);setBN('wallet')"><div class="icon">💳</div>Wallet</button>
+    <button class="bnav-item bnav-more" onclick="toggleDrawer()"><div class="icon">⋯</div>More</button>
+  </nav>
+
+  <!-- More Drawer -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="more-drawer" id="more-drawer">
+    <div class="more-drawer-handle"></div>
+    <div class="more-grid">
+      <div class="more-item" onclick="showTab('transactions',null);setBN('transactions');closeDrawer()"><div class="icon">💸</div>Transactions</div>
+      <div class="more-item" onclick="showTab('affiliate',null);setBN('affiliate');closeDrawer()"><div class="icon">🔗</div>Affiliate</div>
+      <div class="more-item" onclick="showTab('products',null);setBN('products');closeDrawer()"><div class="icon">📦</div>Plans</div>
+      <div class="more-item" onclick="showTab('mail',null);setBN('mail');closeDrawer()"><div class="icon">📧</div>Messages</div>
+      <div class="more-item" onclick="showTab('settings',null);setBN('settings');closeDrawer()"><div class="icon">⚙️</div>Settings</div>
+    </div>
+  </div>
+
+</div><!-- /portal -->
+
+<!-- ══════════ MODALS ══════════ -->
+<div id="modal-user" class="modal-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title" id="mu-title">Add User</div><button class="modal-close" onclick="closeModal('modal-user')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-uid"/>
+      <div class="field"><label>Full Name *</label><input id="u-name" class="input" placeholder="Full name"/></div>
+      <div class="field"><label>Email *</label><input id="u-email" class="input" type="email" placeholder="email@example.com"/></div>
+      <div class="field"><label>Password</label><input id="u-password" class="input" placeholder="Password"/></div>
+      <div class="field"><label>Phone</label><input id="u-phone" class="input" placeholder="+1 234 567 8900"/></div>
+      <div class="field"><label>Country</label><input id="u-country" class="input" placeholder="Country"/></div>
+      <div class="field"><label>Plan</label>
+        <select id="u-plan" class="input"><option value="">No plan</option><option value="Starter">Starter</option><option value="Basic">Basic</option><option value="Standard">Standard</option><option value="Premium">Premium</option><option value="Elite">Elite</option></select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="u-status" class="input"><option value="active">Active</option><option value="pending">Pending</option><option value="suspended">Suspended</option></select>
+      </div>
+      <button onclick="saveUser()" class="btn-gold" style="margin-top:6px">Save User</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-fund" class="modal-bg">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title" id="fund-title">Adjust Balance</div><button class="modal-close" onclick="closeModal('modal-fund')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="fund-uid"/>
+      <input type="hidden" id="fund-mode"/>
+      <div class="field"><label>Amount ($)</label><input id="fund-amount" class="input" type="number" min="0.01" step="0.01" placeholder="0.00" style="font-size:28px;font-weight:700;text-align:center;font-family:'Syne',sans-serif"/></div>
+      <div class="field"><label>Note (optional)</label><input id="fund-note" class="input" placeholder="Reason..."/></div>
+      <button id="fund-btn" onclick="applyFund()" class="btn-gold">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-notify" class="modal-bg">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div class="modal-title" id="notify-title">Send Notification</div><button class="modal-close" onclick="closeModal('modal-notify')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="notify-uid"/>
+      <div class="field"><label>Type</label>
+        <select id="notify-type" class="input"><option value="info">ℹ️ Info</option><option value="payment">💰 Payment</option><option value="warning">⚠️ Warning</option><option value="success">✅ Success</option><option value="urgent">🚨 Urgent</option></select>
+      </div>
+      <div class="field"><label>Title</label><input id="notify-subject" class="input" placeholder="Notification title"/></div>
+      <div class="field"><label>Message</label><textarea id="notify-body" class="input" rows="3" style="resize:vertical" placeholder="Your message..."></textarea></div>
+      <button onclick="sendNotification()" style="width:100%;padding:13px;background:rgba(96,160,240,.1);border:1px solid rgba(96,160,240,.25);color:var(--blue);border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🔔 Send</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<script id="safe-sidebar-js">
+document.addEventListener('DOMContentLoaded',()=>{
+
+// REMOVE BROKEN REWRITES
+const badScripts = document.querySelectorAll('#ultimate-admin-js-fix');
+badScripts.forEach(s=>s.remove());
+
+// CREATE SAFE SIDEBAR WITHOUT REPLACING BODY HTML
+if(!document.querySelector('.premium-sidebar')){
+
+const sidebar = document.createElement('div');
+sidebar.className = 'premium-sidebar';
+
+sidebar.innerHTML = `
+<h2 style="color:white;font-size:22px;margin-bottom:20px;font-weight:800">
+EarnVest Admin
+</h2>
+
+<a class="sidebar-item" href="#dashboard">Dashboard</a>
+<a class="sidebar-item" href="#users">Users</a>
+<a class="sidebar-item" href="#funding">Funding</a>
+<a class="sidebar-item" href="#transactions">Transactions</a>
+<a class="sidebar-item" href="#settings">Settings</a>
+`;
+
+document.body.prepend(sidebar);
+
+// WRAP EXISTING CONTENT SAFELY
+const wrapper = document.createElement('div');
+wrapper.className = 'main-content-safe';
+
+while(document.body.children.length > 1){
+wrapper.appendChild(document.body.children[1]);
+}
+
+document.body.appendChild(wrapper);
+}
+
+// FIX AUTH BUTTONS
+document.querySelectorAll('button').forEach(btn=>{
+const t = (btn.innerText || '').toLowerCase();
+
+if(t.includes('google') || t.includes('login')){
+btn.disabled = false;
+btn.style.pointerEvents = 'auto';
+}
+});
+
+// FIX DUPLICATE HIDDEN FORMS
+document.querySelectorAll('form').forEach(f=>{
+f.style.display = '';
+});
+
+// PRESERVE ADMIN SESSION
+const emailInput = document.querySelector('input[type="email"]');
+if(emailInput){
+emailInput.setAttribute('autocomplete','email');
+}
+
+});
+</script>
+
+
+<script id="safe-admin-auth">
+document.addEventListener('DOMContentLoaded',()=>{
+
+window.verifyAdmin = function(user){
+
+const adminEmails = [
+'admin@earnvest.com',
+'you@example.com'
+].map(e=>e.toLowerCase());
+
+if(!user || !user.email) return false;
+
+return adminEmails.includes(user.email.toLowerCase());
+};
+
+// prevent accidental redirects
+const originalAssign = window.location.assign;
+const originalReplace = window.location.replace;
+
+window.location.assign = function(url){
+if(url==='/' || url==='index.html'){
+console.warn('Blocked unwanted redirect:',url);
+return;
+}
+originalAssign.call(window.location,url);
+};
+
+window.location.replace = function(url){
+if(url==='/' || url==='index.html'){
+console.warn('Blocked unwanted redirect:',url);
+return;
+}
+originalReplace.call(window.location,url);
+};
+
+});
+</script>
+
+
+<script id="auth-provider-fix">
+document.addEventListener('DOMContentLoaded',()=>{
+
+// SAFE ORIGIN
+const SITE_URL = window.location.origin;
+
+// GOOGLE LOGIN FIX
+window.safeGoogleLogin = async function(){
+
+try{
+
+if(typeof supabase === 'undefined'){
+console.error('Supabase not initialized');
+alert('Authentication service unavailable');
+return;
+}
+
+const { error } = await supabase.auth.signInWithOAuth({
+provider:'google',
+options:{
+redirectTo: SITE_URL + '/admin.html'
+}
+});
+
+if(error){
+console.error(error);
+alert(error.message || 'Google login failed');
+}
+
+}catch(err){
+console.error(err);
+alert('Google auth crashed');
+}
+};
+
+// MAGIC LINK FIX
+window.safeMagicLink = async function(email){
+
+try{
+
+if(!email){
+alert('Enter email');
+return;
+}
+
+if(typeof supabase === 'undefined'){
+alert('Supabase unavailable');
+return;
+}
+
+const { error } = await supabase.auth.signInWithOtp({
+email: email,
+options:{
+emailRedirectTo: SITE_URL + '/admin.html'
+}
+});
+
+if(error){
+console.error(error);
+alert(error.message || 'Magic link failed');
+return;
+}
+
+alert('Magic link sent successfully');
+
+}catch(err){
+console.error(err);
+alert('Magic link crashed');
+}
+};
+
+// REBIND BUTTONS
+document.querySelectorAll('button,a').forEach(el=>{
+
+const txt = (el.innerText || '').toLowerCase();
+
+if(txt.includes('google')){
+el.onclick = function(e){
+e.preventDefault();
+
+safeGoogleLogin();
+};
+}
+
+if(txt.includes('magic')){
+el.onclick = async function(e){
+e.preventDefault();
+
+const emailInput =
+document.querySelector('input[type="email"]');
+
+const email = emailInput ? emailInput.value.trim() : '';
+
+await safeMagicLink(email);
+};
+}
+
+});
+
+});
+</script>
+
+
+<script>
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error('GLOBAL ERROR:', message, source, lineno);
+};
+</script>
+
+</body></html>
